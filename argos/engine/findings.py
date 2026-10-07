@@ -37,6 +37,19 @@ def severity_at_least(sev: Severity, threshold: Severity) -> bool:
     return SEVERITY_RANK[sev] >= SEVERITY_RANK[threshold]
 
 
+def severity_from_cvss(score: float) -> Severity:
+    """Derive severity from a CVSS base score (0-10)."""
+    if score >= 9.0:
+        return Severity.CRITICAL
+    if score >= 7.0:
+        return Severity.HIGH
+    if score >= 4.0:
+        return Severity.MEDIUM
+    if score > 0.0:
+        return Severity.LOW
+    return Severity.INFO
+
+
 @dataclass
 class Finding:
     """A single vulnerability/discovery produced by a check."""

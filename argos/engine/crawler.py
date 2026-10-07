@@ -46,6 +46,7 @@ class Page:
     html: str = ""
     final_url: str = ""
     depth: int = 0
+    cookies: list[str] = field(default_factory=list)
     links: set[str] = field(default_factory=set)
     forms: list[Form] = field(default_factory=list)
     scripts: list[str] = field(default_factory=list)
@@ -212,6 +213,7 @@ class Crawler:
             headers=dict(resp.headers),
             content_type=content_type,
             depth=depth,
+            cookies=resp.headers.get_list("set-cookie"),
         )
         if "html" not in content_type:
             return page
