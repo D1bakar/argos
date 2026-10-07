@@ -1,0 +1,9 @@
+# argos allowlist — hosts that active (payload-injecting) checks may target.
+# Copy to `argos.allow` and list ONLY domains you own or are authorized to test.
+# One pattern per line. `*.example.com` matches all subdomains (not the apex).
+# Lines starting with # are comments.
+
+example.com
+*.staging.example.com
+localhost
+127.0.0.1

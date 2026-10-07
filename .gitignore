@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# per-user scan authorization list (domains you own/are allowed to test)
+argos.allow
+!argos.allow.example
+
+# scan outputs
+argos-report*.json
+argos-report*.html
