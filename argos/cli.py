@@ -17,7 +17,7 @@ from argos.engine.allowlist import ALLOW_FILE, Allowlist
 from argos.engine.findings import Severity, severity_at_least
 from argos.engine.registry import load_checks, select_checks
 from argos.engine.scanner import Scanner
-from argos.reports import json_report
+from argos.reports import html_report, json_report
 from argos.reports.console import render
 
 
@@ -107,6 +107,7 @@ def scan(
         None, "--callback", help="Out-of-band callback URL you control (SSRF/XXE/blind)"
     ),
     json_out: Path | None = typer.Option(None, "--json", help="Write JSON report"),
+    html_out: Path | None = typer.Option(None, "--html", help="Write HTML report"),
     fail_on: str | None = typer.Option(
         None, "--fail-on", help="Exit 2 if findings at/above severity (e.g. high)"
     ),
@@ -162,6 +163,9 @@ def scan(
     if json_out:
         json_report.write(result, json_out)
         console.print(f"\n[dim]JSON report →[/dim] {json_out}")
+    if html_out:
+        html_report.write(result, html_out)
+        console.print(f"[dim]HTML report →[/dim] {html_out}")
 
     if threshold and any(severity_at_least(f.severity, threshold) for f in result.findings):
         raise typer.Exit(code=2)
@@ -214,6 +218,21 @@ def plugins(profile: str = typer.Option("deep", "--profile", "-p")):
         color = "red" if check.mode == "active" else "cyan"
         table.add_row(check.name, f"[{color}]{check.mode}[/]", check.min_profile, check.summary)
     console.print(table)
+
+
+@app.command()
+def listen(
+    port: int = typer.Option(8080, "--port", "-p", help="Port to listen on"),
+    host: str = typer.Option("0.0.0.0", "--host", help="Bind address"),
+) -> None:
+    """Listen for out-of-band callbacks (blind SSRF/XXE/injection confirmation).
+
+    Run this where the target can reach you, then scan with
+    --callback http://<your-reachable-host>:<port>.
+    """
+    from argos.listener import serve
+
+    serve(host, port)
 
 
 @app.command()
