@@ -1,6 +1,7 @@
 """Checks package: importing this module registers all check plugins."""
 
 from argos.checks.active import (  # noqa: F401
+    cache_poison,
     cmdi,
     cors,
     default_creds,
@@ -8,6 +9,7 @@ from argos.checks.active import (  # noqa: F401
     idor,
     jwt,
     methods,
+    smuggling,
     sqli,
     ssrf,
     ssti,
@@ -21,7 +23,9 @@ from argos.checks.passive import (  # noqa: F401
     csrf,
     fingerprint,
     info_disclosure,
+    secrets,
     security_headers,
+    takeover,
     target_info,
     tls,
 )

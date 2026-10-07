@@ -37,7 +37,9 @@ db.executemany(
 db.commit()
 
 INDEX = """<!doctype html><html><head><title>argos target</title>
-<script src="/static/jquery-3.4.1.min.js"></script></head>
+<link rel="canonical" href="http://{{ request.headers.get('X-Forwarded-Host', request.host) }}/">
+<script src="/static/jquery-3.4.1.min.js"></script>
+<script src="/leak.js"></script></head>
 <body>
 <h1>argos vulnerable target</h1>
 <ul>
@@ -63,9 +65,22 @@ INDEX = """<!doctype html><html><head><title>argos target</title>
 </body></html>"""
 
 
-@app.route("/")
+@app.route("/")  # noqa: PLR0903 — demo app
 def index():
     return render_template_string(INDEX)
+
+
+@app.route("/leak.js")  # fake secrets built at runtime (never committed as literals)
+def leak_js():
+    aws = "AK" + "IA" + "FAKEKEY01234ABCD"  # AKIA + 16 chars
+    gh = "gh" + "p_" + "A" * 36
+    body = (
+        "// demo front-end config\n"
+        f"const AWS_ACCESS_KEY = '{aws}';\n"
+        f"const GITHUB_TOKEN = '{gh}';\n"
+        "const password = 'supersecretpass1';\n"
+    )
+    return body, 200, {"Content-Type": "application/javascript"}
 
 
 @app.route("/search")  # SQL injection: string-concatenated query, errors disclosed
