@@ -19,3 +19,5 @@ argos.allow
 # scan outputs
 argos-report*.json
 argos-report*.html
+argos-*.json
+!argos.allow.example
