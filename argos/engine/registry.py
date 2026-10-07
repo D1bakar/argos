@@ -28,6 +28,8 @@ class ScanContext:
     pages: list[Page] = field(default_factory=list)
     findings: list[Finding] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    # baseline responses per injection point (shared across active checks)
+    baselines: dict[str, tuple[int, str]] = field(default_factory=dict)
     # filled by auth modules (phase 4): role name -> cookie header
     role_cookies: dict[str, str] = field(default_factory=dict)
 

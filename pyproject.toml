@@ -37,6 +37,8 @@ dev = [
     "respx>=0.21",
     "ruff>=0.6",
     "mypy>=1.11",
+    "flask>=3.0",
+    "lxml>=5.0",
 ]
 
 [project.scripts]
