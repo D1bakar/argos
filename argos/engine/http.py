@@ -116,6 +116,20 @@ class HttpClient:
     async def head(self, url: str, **kwargs: Any) -> httpx.Response:
         return await self.request("HEAD", url, **kwargs)
 
+    # --- cookie jar management (role logins) ---------------------------------
+    def cookie_pairs(self) -> dict[str, str]:
+        return {c.name: c.value for c in self._client.cookies.jar if c.value is not None}
+
+    def cookie_header(self) -> str:
+        return "; ".join(
+            f"{c.name}={c.value}"
+            for c in self._client.cookies.jar
+            if c.value is not None
+        )
+
+    def clear_cookies(self) -> None:
+        self._client.cookies.clear()
+
 
 class ResponseLike(Protocol):
     status_code: int

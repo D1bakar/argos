@@ -50,10 +50,16 @@ INDEX = """<!doctype html><html><head><title>argos target</title>
   <li><a href="/login">login (broken auth)</a></li>
   <li><a href="/profile?id=1">profile (IDOR)</a></li>
   <li><a href="/admin">admin (forced browse)</a></li>
+  <li><a href="/administrator">administrator (unauth panel)</a></li>
+  <li><a href="/jwt/profile">jwt profile</a></li>
   <li><a href="/redirect?url=/">redirect (open redirect)</a></li>
   <li><a href="/upload">upload</a></li>
   <li><a href="/api/xml">xml (XXE)</a></li>
 </ul>
+<form method=post action=/comment>
+  <input name=name placeholder=name><input name=text placeholder=comment>
+  <button>post comment</button>
+</form>
 </body></html>"""
 
 
@@ -173,6 +179,60 @@ def profile():
     if not row:
         return "not found", 404
     return jsonify(dict(zip(["id", "name", "email", "role", "ssn"], row, strict=False)))
+
+
+@app.route("/administrator")  # admin panel with NO auth check at all
+def administrator():
+    return (
+        "<html><head><title>Administrator Panel</title></head>"
+        "<body><h1>Administrator Panel</h1>"
+        "<p>secret: super-admin-panel-key</p></body></html>"
+    )
+
+
+JWT_KEY = b"argos-jwt-key"  # noqa: S105 — demo only
+
+
+def _b64(data: bytes) -> str:
+    import base64
+
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
+
+
+def _b64d(seg: str) -> bytes:
+    import base64
+
+    return base64.urlsafe_b64decode(seg + "=" * (-len(seg) % 4))
+
+
+def _jwt_sign(header: str, payload: str) -> str:
+    import hashlib
+    import hmac
+
+    return hmac.new(JWT_KEY, f"{header}.{payload}".encode(), hashlib.sha256).hexdigest()
+
+
+@app.route("/jwt/profile")  # accepts alg=none (unsigned) tokens
+def jwt_profile():
+    import json
+
+    raw = request.cookies.get("jwt", "")
+    parts = raw.split(".")
+    if len(parts) == 3:
+        header_b64, payload_b64, sig = parts
+        try:
+            header = json.loads(_b64d(header_b64))
+            data = json.loads(_b64d(payload_b64))
+        except Exception:  # noqa: BLE001
+            header, data = {}, {}
+        if header.get("alg") == "none":  # deliberate: signature never checked
+            return (
+                f"<p>welcome {data.get('sub')} role={data.get('role')} "
+                "SECRET=jwt-admin-secret</p>"
+            )
+        if sig == _jwt_sign(header_b64, payload_b64):
+            return f"<p>profile: {data.get('sub')} ({data.get('role')})</p>"
+    return "<p>401 unauthorized: invalid jwt</p>", 401
 
 
 @app.route("/admin")  # forced browsing: admin panel behind weak session check

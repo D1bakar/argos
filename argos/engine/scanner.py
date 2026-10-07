@@ -91,6 +91,14 @@ class Scanner:
                 warnings=warnings,
             )
 
+            if cfg.roles:
+                if active_allowed:
+                    from argos.engine.auth import harvest_role_cookies
+
+                    await harvest_role_cookies(ctx)
+                else:
+                    ctx.warn("--roles requires --active and target in argos.allow")
+
             checks = select_checks(cfg, active_allowed)
             checks_run: list[str] = []
             for check in checks:
